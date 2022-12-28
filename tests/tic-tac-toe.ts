@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Address, Program } from "@project-serum/anchor";
 import { expect } from "chai";
-import { TicTacToe, } from "../target/types/tic_tac_toe";
+import { TicTacToe } from "../target/types/tic_tac_toe";
 
 describe("tic-tac-toe", () => {
   // Configure the client to use the local cluster.
@@ -12,7 +12,7 @@ describe("tic-tac-toe", () => {
     program: Program<TicTacToe>,
     game: Address,
     player: { publicKey: any },
-    tile: {row: number, column: number},
+    tile: { row: number; column: number },
     expectedTurn: number,
     expectedGameState: any,
     expectedBoard: any
@@ -37,7 +37,7 @@ describe("tic-tac-toe", () => {
     const playerOne = (program.provider as anchor.AnchorProvider).wallet;
     const playerTwo = anchor.web3.Keypair.generate();
     await program.methods
-      .initialize(playerTwo.publicKey)
+      .setupGame(playerTwo.publicKey)
       .accounts({
         game: gameKeypair.publicKey,
         playerOne: playerOne.publicKey,
