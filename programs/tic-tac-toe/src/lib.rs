@@ -16,8 +16,12 @@ declare_id!("6t7apAJrPmkCQoGjqzWM6ZjicUNnjdz5qJ6ob1jjBz1E");
 pub mod tic_tac_toe {
     use super::*;
 
-    pub fn setup_game(ctx: Context<SetupGame>, player_two: Pubkey) -> Result<()> {
-        instructions::setup_game::handler(ctx, player_two)
+    pub fn create(ctx: Context<Create>, game_id: String) -> Result<()> {
+        instructions::create::handler(ctx, game_id)
+    }
+
+    pub fn join(ctx: Context<Join>) -> Result<()> {
+        instructions::join::handler(ctx)
     }
 
     pub fn play(ctx: Context<Play>, tile: Tile) -> Result<()> {

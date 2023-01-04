@@ -1,5 +1,7 @@
+pub mod create;
+pub mod join;
 pub mod play;
-pub mod setup_game;
 
+pub use create::*;
+pub use join::*;
 pub use play::*;
-pub use setup_game::*;

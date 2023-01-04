@@ -4,7 +4,7 @@ use num_traits::*;
 
 use crate::*;
 
-#[derive(AnchorSerialize, AnchorDeserialize)]
+#[derive(AnchorSerialize, AnchorDeserialize, Debug)]
 pub struct Tile {
     row: u8,
     column: u8,
@@ -12,6 +12,7 @@ pub struct Tile {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Copy, Clone, PartialEq, Eq)]
 pub enum GameState {
+    GameCreated,
     Active,
     Tie,
     Won { winner: Pubkey },
@@ -27,18 +28,33 @@ pub enum Sign {
 
 #[account]
 pub struct Game {
-    players: [Pubkey; 2],
-    turn: u8,
-    board: [[Option<Sign>; 3]; 3],
-    state: GameState,
+    pub players: [Option<Pubkey>; 2],
+    pub turn: u8,
+    pub board: [[Option<Sign>; 3]; 3],
+    pub state: GameState,
+    pub game_id: String,
+    pub bump: u8,
 }
 
 impl Game {
-    pub const MAXIMUM_SIZE: usize = (32 * 2) + 1 + (9 * (1 + 1)) + (32 + 1);
+    pub const MAXIMUM_SIZE: usize = (32 * 2) + 1 + (9 * (2)) + 1 + 32 + 1;
 
-    pub fn start(&mut self, players: [Pubkey; 2]) -> Result<()> {
+    pub fn create(&mut self, player_one: Pubkey, game_id: String) -> Result<()> {
         require_eq!(self.turn, 0, TicTacToeError::GameAlreadyStarted);
-        self.players = players;
+        self.players = [Some(player_one), None];
+        self.game_id = game_id;
+        self.state = GameState::GameCreated;
+        Ok(())
+    }
+
+    pub fn join(&mut self, player_two: Pubkey) -> Result<()> {
+        // Check if player two is already in the game
+        require!(
+            !self.player_two_joined(),
+            TicTacToeError::PlayerTwoAlreadySet
+        );
+        self.players[1] = Some(player_two);
+        self.state = GameState::Active;
         self.turn = 1;
         Ok(())
     }
@@ -47,16 +63,32 @@ impl Game {
         self.state == GameState::Active
     }
 
+    pub fn player_two_joined(&self) -> bool {
+        self.players[1].is_some()
+    }
+
+    pub fn game_is_ready(&self) -> Result<()> {
+        require!(self.is_active(), TicTacToeError::GameAlreadyEnded);
+        require!(self.player_two_joined(), TicTacToeError::PlayerTwoNotSet);
+        Ok(())
+    }
+
     pub fn current_player_idx(&self) -> usize {
         ((self.turn - 1) % 2) as usize
     }
 
     pub fn current_player(&self) -> Pubkey {
-        self.players[self.current_player_idx()]
+        let player = self.players[self.current_player_idx()];
+        // Unwrapping as there is gurantee of player being present
+        // as the game is active, and game can only be active after
+        // player two is set.
+        player.unwrap()
     }
 
     pub fn play(&mut self, tile: &Tile) -> Result<()> {
-        require!(self.is_active(), TicTacToeError::GameAlreadyEnded);
+        // Pre checks before game can be played
+        self.game_is_ready()?;
+
         require!(
             tile.row <= 3 && tile.column <= 3,
             TicTacToeError::TileOutOfBounds
