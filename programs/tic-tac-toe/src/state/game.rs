@@ -4,6 +4,25 @@ use num_traits::*;
 
 use crate::*;
 
+#[event]
+pub struct GameStateChange {
+    pub game_id: String,
+    pub state: GameState,
+    pub turn: Pubkey,
+    pub board: [[Option<Sign>; 3]; 3],
+}
+
+impl GameStateChange {
+    pub fn from_game(game: &Game) -> Self {
+        Self {
+            game_id: game.game_id.clone(),
+            state: game.state,
+            turn: game.current_player(),
+            board: game.board,
+        }
+    }
+}
+
 #[derive(AnchorSerialize, AnchorDeserialize, Debug)]
 pub struct Tile {
     row: u8,
@@ -37,13 +56,17 @@ pub struct Game {
 }
 
 impl Game {
-    pub const MAXIMUM_SIZE: usize = (32 * 2) + 1 + (9 * (2)) + 1 + 32 + 1;
+    // (32 * 2) + 1 => Players | 1 => Turn | (9 + 1) => Board |
+    // 32 + 1 => State | 32 => Game ID | 1 => Bump
+    pub const MAXIMUM_SIZE: usize = ((32 * 2) + 1) + 1 + (9 + 1) + (32 + 1) + 32 + 1;
 
     pub fn create(&mut self, player_one: Pubkey, game_id: String) -> Result<()> {
         require_eq!(self.turn, 0, TicTacToeError::GameAlreadyStarted);
         self.players = [Some(player_one), None];
         self.game_id = game_id;
         self.state = GameState::GameCreated;
+
+        // emit!(GameStateChange::from_game(&self));
         Ok(())
     }
 
@@ -56,6 +79,8 @@ impl Game {
         self.players[1] = Some(player_two);
         self.state = GameState::Active;
         self.turn = 1;
+
+        // emit!(GameStateChange::from_game(&self));
         Ok(())
     }
 
@@ -68,8 +93,8 @@ impl Game {
     }
 
     pub fn game_is_ready(&self) -> Result<()> {
-        require!(self.is_active(), TicTacToeError::GameAlreadyEnded);
         require!(self.player_two_joined(), TicTacToeError::PlayerTwoNotSet);
+        require!(self.is_active(), TicTacToeError::GameAlreadyEnded);
         Ok(())
     }
 
@@ -86,11 +111,11 @@ impl Game {
     }
 
     pub fn play(&mut self, tile: &Tile) -> Result<()> {
-        // Pre checks before game can be played
         self.game_is_ready()?;
+        msg!("Game is ready");
 
         require!(
-            tile.row <= 3 && tile.column <= 3,
+            tile.row < 3 && tile.column < 3,
             TicTacToeError::TileOutOfBounds
         );
 
@@ -99,13 +124,16 @@ impl Game {
 
         self.board[tile.row as usize][tile.column as usize] =
             Some(Sign::from_usize(self.current_player_idx()).unwrap());
+        msg!("Registered tile moves");
 
         self.update_state();
+        msg!("State has been updated");
 
         if self.state == GameState::Active {
             self.turn += 1;
         }
 
+        // emit!(GameStateChange::from_game(&self));
         Ok(())
     }
 

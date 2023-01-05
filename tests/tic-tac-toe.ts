@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { expect } from "chai";
+import { config, expect } from "chai";
 import { TicTacToe } from "../target/types/tic_tac_toe";
 
 describe("tic-tac-toe", () => {
@@ -10,9 +10,9 @@ describe("tic-tac-toe", () => {
   const program = anchor.workspace.TicTacToe as Program<TicTacToe>;
 
   // Get userStatsPda
-  async function getGamePDA(): Promise<[string, PublicKey]> {
+  function getGamePDA(): [string, PublicKey] {
     const gameId = Math.random().toString(36).substring(2, 7);
-    const [pda, _nonce] = await PublicKey.findProgramAddress(
+    const [pda, _nonce] = PublicKey.findProgramAddressSync(
       [
         anchor.utils.bytes.utf8.encode("game"),
         anchor.utils.bytes.utf8.encode(gameId),
@@ -24,12 +24,7 @@ describe("tic-tac-toe", () => {
 
   describe("initization", async () => {
     const playerOne = (program.provider as anchor.AnchorProvider).wallet;
-    let gamePDA: PublicKey;
-    let gameId: string;
-
-    before(async () => {
-      [gameId, gamePDA] = await getGamePDA();
-    });
+    let [gameId, gamePDA] = getGamePDA();
 
     it("game id creation", async () => {
       await program.methods
@@ -68,13 +63,9 @@ describe("tic-tac-toe", () => {
   describe("test single game", async () => {
     const playerOne = (program.provider as anchor.AnchorProvider).wallet;
     const playerTwo = anchor.web3.Keypair.generate();
-
-    let gamePDA: PublicKey;
-    let gameId: string;
+    let [gameId, gamePDA] = getGamePDA();
 
     before(async () => {
-      [gameId, gamePDA] = await getGamePDA();
-
       await program.methods
         .create(gameId)
         .accounts({
@@ -117,6 +108,175 @@ describe("tic-tac-toe", () => {
         [{ x: {} }, { o: {} }, null],
         [null, null, null],
         [null, null, null],
+      ]);
+    });
+  });
+
+  describe("test game win", () => {
+    let playerOne = (program.provider as anchor.AnchorProvider).wallet;
+    let playerTwo = anchor.web3.Keypair.generate();
+    let gamePDA: PublicKey;
+    let gameId: string;
+
+    beforeEach(async () => {
+      [gameId, gamePDA] = getGamePDA();
+
+      await program.methods
+        .create(gameId)
+        .accounts({
+          game: gamePDA,
+          playerOne: playerOne.publicKey,
+        })
+        .rpc();
+      await program.methods
+        .join()
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+    });
+
+    it("player two wins diagnal", async () => {
+      await program.methods
+        .play({ row: 0, column: 0 })
+        .accounts({ game: gamePDA, player: playerOne.publicKey })
+        .rpc();
+
+      await program.methods
+        .play({ row: 0, column: 2 })
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+
+      await program.methods
+        .play({ row: 0, column: 1 })
+        .accounts({ game: gamePDA })
+        .rpc();
+
+      await program.methods
+        .play({ row: 1, column: 1 })
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+
+      await program.methods
+        .play({ row: 1, column: 2 })
+        .accounts({ game: gamePDA })
+        .rpc();
+
+      await program.methods
+        .play({ row: 2, column: 0 })
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+
+      let gameState = await program.account.game.fetch(gamePDA);
+      expect(gameState.state).to.deep.equal({
+        won: { winner: playerTwo.publicKey },
+      });
+      expect(gameState.board).to.deep.equal([
+        [{ x: {} }, { x: {} }, { o: {} }],
+        [null, { o: {} }, { x: {} }],
+        [{ o: {} }, null, null],
+      ]);
+    });
+
+    it("player one wins straight", async () => {
+      await program.methods
+        .play({ row: 1, column: 0 })
+        .accounts({ game: gamePDA, player: playerOne.publicKey })
+        .rpc();
+
+      await program.methods
+        .play({ row: 0, column: 0 })
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+
+      await program.methods
+        .play({ row: 1, column: 1 })
+        .accounts({ game: gamePDA })
+        .rpc();
+
+      await program.methods
+        .play({ row: 0, column: 2 })
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+
+      await program.methods
+        .play({ row: 1, column: 2 })
+        .accounts({ game: gamePDA })
+        .rpc();
+
+      let gameState = await program.account.game.fetch(gamePDA);
+      expect(gameState.state).to.deep.equal({
+        won: { winner: playerOne.publicKey },
+      });
+      expect(gameState.board).to.deep.equal([
+        [{ o: {} }, null, { o: {} }],
+        [{ x: {} }, { x: {} }, { x: {} }],
+        [null, null, null],
+      ]);
+    });
+
+    it("draw", async () => {
+      await program.methods
+        .play({ row: 0, column: 0 })
+        .accounts({ game: gamePDA, player: playerOne.publicKey })
+        .rpc();
+
+      await program.methods
+        .play({ row: 0, column: 1 })
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+
+      await program.methods
+        .play({ row: 0, column: 2 })
+        .accounts({ game: gamePDA })
+        .rpc();
+
+      await program.methods
+        .play({ row: 1, column: 0 })
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+
+      await program.methods
+        .play({ row: 1, column: 1 })
+        .accounts({ game: gamePDA })
+        .rpc();
+
+      await program.methods
+        .play({ row: 2, column: 2 })
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+
+      await program.methods
+        .play({ row: 1, column: 2 })
+        .accounts({ game: gamePDA })
+        .rpc();
+
+      await program.methods
+        .play({ row: 2, column: 0 })
+        .accounts({ game: gamePDA, player: playerTwo.publicKey })
+        .signers([playerTwo])
+        .rpc();
+
+      await program.methods
+        .play({ row: 2, column: 1 })
+        .accounts({ game: gamePDA })
+        .rpc();
+
+      let gameState = await program.account.game.fetch(gamePDA);
+      expect(gameState.state).to.deep.equal({
+        tie: {},
+      });
+      expect(gameState.board).to.deep.equal([
+        [{ x: {} }, { o: {} }, { x: {} }],
+        [{ o: {} }, { x: {} }, { x: {} }],
+        [{ o: {} }, { x: {} }, { o: {} }],
       ]);
     });
   });

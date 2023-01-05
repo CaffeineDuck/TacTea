@@ -10,7 +10,7 @@ use errors::*;
 use instructions::*;
 use state::*;
 
-declare_id!("6t7apAJrPmkCQoGjqzWM6ZjicUNnjdz5qJ6ob1jjBz1E");
+declare_id!("BiizM1jU9UJcUZUJaeCV33QByTYjekSBQ5Q5MdoH1R1Z");
 
 #[program]
 pub mod tic_tac_toe {
