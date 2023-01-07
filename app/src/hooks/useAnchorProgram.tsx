@@ -11,8 +11,8 @@ export function useAnchorProgram() {
   return useMemo(() => {
     if (anchorWallet) {
       const provider = new AnchorProvider(connection, anchorWallet, {
-        preflightCommitment: "finalized",
-        commitment: "finalized",
+        preflightCommitment: "confirmed",
+        commitment: "confirmed",
       });
       console.log(AnchorProvider.defaultOptions());
       const program = new Program<TicTacToe>(
