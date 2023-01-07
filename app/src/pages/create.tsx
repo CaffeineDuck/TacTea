@@ -35,10 +35,10 @@ const Create: NextPage = () => {
   }, [gameId]);
 
   return (
-    <div>
+    <div className="my-80">
       <Head>
-        <title>Join Game - TicTacToe</title>
-        <meta name="description" content="Join tictactoe game" />
+        <title>Create Game - TacTea</title>
+        <meta name="description" content="Create TacTie game" />
       </Head>
       <div className="flex flex-col justify-center items-center my-10">
         <div className="text-center font-mono text-4xl py-10">

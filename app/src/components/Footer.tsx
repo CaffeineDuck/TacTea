@@ -5,7 +5,7 @@ export const Footer: FC = () => {
         <div>
             <footer className="flex-row p-4 text-center items-center footer bg-neutral text-neutral-content">
                 <div className="max-w-md mx-auto sm:pl-12 grid-flow-col gap-4 text-center">
-                    <a href="https://github.com/CaffeineDuck" target="_blank">
+                    <a href="https://github.com/CaffeineDuck/TacTea" target="_blank">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="fill-current"

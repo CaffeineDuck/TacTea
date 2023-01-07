@@ -38,13 +38,13 @@ const Join: NextPage = () => {
   };
 
   return (
-    <div>
+    <div className="my-80">
       <Head>
         <title>Join Game - TicTacToe</title>
         <meta name="description" content="Join tictactoe game" />
       </Head>
       <div className="text-center my-10">
-        <h1 className="text-3xl font-bold my-10">Join Game</h1>
+        <h1 className="text-4xl mt-10 font-mono">Join Game</h1>
         <input
           placeholder="Game Id"
           ref={inputRef}

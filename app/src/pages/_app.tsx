@@ -14,7 +14,7 @@ const App: FC<AppProps> = ({ Component, pageProps }) => {
     return (
         <>
             <Head>
-                <title>TicTacToe - Anchor</title>
+                <title>TacTea</title>
             </Head>
 
             <ContextProvider>
