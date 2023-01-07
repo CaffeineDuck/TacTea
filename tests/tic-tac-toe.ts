@@ -1,7 +1,7 @@
 import * as anchor from "@project-serum/anchor";
 import { Program } from "@project-serum/anchor";
 import { PublicKey } from "@solana/web3.js";
-import { config, expect } from "chai";
+import { expect } from "chai";
 import { TicTacToe } from "../target/types/tic_tac_toe";
 
 describe("tic-tac-toe", () => {

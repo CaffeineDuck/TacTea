@@ -10,4 +10,5 @@ pub enum TicTacToeError {
     TileAlreadyPopulated,
     TileOutOfBounds,
     NotPlayersTurn,
+    PlayerOneCannotJoin,
 }

@@ -16,6 +16,12 @@ pub struct Join<'info> {
 
 // Get the game from PDA using the game id
 pub fn handler(ctx: Context<Join>) -> Result<()> {
+    require_keys_neq!(
+        ctx.accounts.player.key(),
+        ctx.accounts.game.players[0].unwrap(),
+        TicTacToeError::PlayerOneCannotJoin
+    );
+
     ctx.accounts.game.join(ctx.accounts.player.key())?;
     msg!("Game joined by {}", ctx.accounts.player.key());
     Ok(())

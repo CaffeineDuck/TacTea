@@ -4,25 +4,6 @@ use num_traits::*;
 
 use crate::*;
 
-#[event]
-pub struct GameStateChange {
-    pub game_id: String,
-    pub state: GameState,
-    pub turn: Pubkey,
-    pub board: [[Option<Sign>; 3]; 3],
-}
-
-impl GameStateChange {
-    pub fn from_game(game: &Game) -> Self {
-        Self {
-            game_id: game.game_id.clone(),
-            state: game.state,
-            turn: game.current_player(),
-            board: game.board,
-        }
-    }
-}
-
 #[derive(AnchorSerialize, AnchorDeserialize, Debug)]
 pub struct Tile {
     row: u8,
@@ -65,8 +46,6 @@ impl Game {
         self.players = [Some(player_one), None];
         self.game_id = game_id;
         self.state = GameState::GameCreated;
-
-        // emit!(GameStateChange::from_game(&self));
         Ok(())
     }
 
@@ -79,8 +58,6 @@ impl Game {
         self.players[1] = Some(player_two);
         self.state = GameState::Active;
         self.turn = 1;
-
-        // emit!(GameStateChange::from_game(&self));
         Ok(())
     }
 
@@ -112,7 +89,6 @@ impl Game {
 
     pub fn play(&mut self, tile: &Tile) -> Result<()> {
         self.game_is_ready()?;
-        msg!("Game is ready");
 
         require!(
             tile.row < 3 && tile.column < 3,
@@ -124,16 +100,12 @@ impl Game {
 
         self.board[tile.row as usize][tile.column as usize] =
             Some(Sign::from_usize(self.current_player_idx()).unwrap());
-        msg!("Registered tile moves");
-
         self.update_state();
-        msg!("State has been updated");
 
         if self.state == GameState::Active {
             self.turn += 1;
         }
 
-        // emit!(GameStateChange::from_game(&self));
         Ok(())
     }
 

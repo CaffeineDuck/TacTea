@@ -1,32 +1,33 @@
-import { AppProps } from 'next/app';
-import Head from 'next/head';
-import { FC } from 'react';
-import { ContextProvider } from '../contexts/ContextProvider';
-import { AppBar } from '../components/AppBar';
-import { ContentContainer } from '../components/ContentContainer';
-import { Footer } from '../components/Footer';
-import Notifications from '../components/Notification'
+import { AppProps } from "next/app";
+import Head from "next/head";
+import { FC } from "react";
+import { ContextProvider } from "../contexts/ContextProvider";
+import { AppBar } from "../components/AppBar";
+import { Footer } from "../components/Footer";
+import Notifications from "../components/Notification";
 
-require('@solana/wallet-adapter-react-ui/styles.css');
-require('../styles/globals.css');
+import "../../styles/global.css";
+
+require("@solana/wallet-adapter-react-ui/styles.css");
 
 const App: FC<AppProps> = ({ Component, pageProps }) => {
     return (
         <>
-          <Head>
-            <title>Solana Scaffold Lite</title>
-          </Head>
+            <Head>
+                <title>TicTacToe - Anchor</title>
+            </Head>
 
-          <ContextProvider>
-            <div className="flex flex-col h-screen">
-              <Notifications />
-              <AppBar/>
-              <ContentContainer>
-                <Component {...pageProps} />
-              </ContentContainer>
-              <Footer/>
-            </div>
-          </ContextProvider>
+            <ContextProvider>
+                <div className="flex flex-col h-screen">
+                    <Notifications />
+                    <AppBar />
+                    <div className="flex-1">
+                        {/* @ts-ignore */}
+                        <Component {...pageProps} />
+                    </div>
+                    <Footer />
+                </div>
+            </ContextProvider>
         </>
     );
 };
