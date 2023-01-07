@@ -29,7 +29,7 @@ const Game: NextPage = () => {
         })
       );
     }
-  }, [routerGameId, gameId]);
+  }, [publicKey, routerGameId, gameId]);
 
   // CurrentPlayerIdx is null if the user is not a player in the game
   if (currentPlayerIdx === null) return <div> Not your Game </div>;
