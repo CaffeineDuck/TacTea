@@ -227,49 +227,6 @@ export type TicTacToe = {
       }
     }
   ],
-  "events": [
-    {
-      "name": "GameStateChange",
-      "fields": [
-        {
-          "name": "gameId",
-          "type": "string",
-          "index": false
-        },
-        {
-          "name": "state",
-          "type": {
-            "defined": "GameState"
-          },
-          "index": false
-        },
-        {
-          "name": "turn",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "board",
-          "type": {
-            "array": [
-              {
-                "array": [
-                  {
-                    "option": {
-                      "defined": "Sign"
-                    }
-                  },
-                  3
-                ]
-              },
-              3
-            ]
-          },
-          "index": false
-        }
-      ]
-    }
-  ],
   "errors": [
     {
       "code": 6000,
@@ -302,6 +259,10 @@ export type TicTacToe = {
     {
       "code": 6007,
       "name": "NotPlayersTurn"
+    },
+    {
+      "code": 6008,
+      "name": "PlayerOneCannotJoin"
     }
   ]
 };
@@ -535,49 +496,6 @@ export const IDL: TicTacToe = {
       }
     }
   ],
-  "events": [
-    {
-      "name": "GameStateChange",
-      "fields": [
-        {
-          "name": "gameId",
-          "type": "string",
-          "index": false
-        },
-        {
-          "name": "state",
-          "type": {
-            "defined": "GameState"
-          },
-          "index": false
-        },
-        {
-          "name": "turn",
-          "type": "publicKey",
-          "index": false
-        },
-        {
-          "name": "board",
-          "type": {
-            "array": [
-              {
-                "array": [
-                  {
-                    "option": {
-                      "defined": "Sign"
-                    }
-                  },
-                  3
-                ]
-              },
-              3
-            ]
-          },
-          "index": false
-        }
-      ]
-    }
-  ],
   "errors": [
     {
       "code": 6000,
@@ -610,6 +528,10 @@ export const IDL: TicTacToe = {
     {
       "code": 6007,
       "name": "NotPlayersTurn"
+    },
+    {
+      "code": 6008,
+      "name": "PlayerOneCannotJoin"
     }
   ]
 };
